@@ -96,7 +96,7 @@
 			}
 		}
 
-		function resize() {
+		function resize(skipRetry) {
 			if(typeof Alpine == "undefined") return;
 			const data = Alpine.store("data");
 			if(!data.play) return;
@@ -115,6 +115,8 @@
 			const rows = Math.floor(rect.height / size);
 			const columns = Math.ceil(n / rows);
 			el.style.paddingInline = (rect.width - columns * size) / 2 + "px";
+
+			if(!skipRetry) setTimeout(() => resize(true), 200);
 		}
 
 		function createShuffledArray(n, factory) {
@@ -165,7 +167,6 @@
 				this.time = new Date().getTime();
 				this.pushState();
 				document.body.requestFullscreen();
-				setTimeout(resize, 500);
 			},
 		}));
 	</script>
