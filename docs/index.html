@@ -125,6 +125,7 @@
 			return arr;
 		}
 
+		addEventListener("fullscreenchange", resize);
 		addEventListener("resize", resize);
 		addEventListener("popstate", e => {
 			const data = Alpine.store("data");
@@ -185,12 +186,12 @@
 			</template>
 		</template>
 		<template x-if="!$store.data.play">
-			<form class="row">
-				<label class="col-3 col-form-label text-end">組數：</label>
+			<form class="row gx-2 px-3">
+				<label class="col-auto col-form-label text-end">組數：</label>
 				<div class="col">
 					<input class="form-control" type="number" x-model.number="$store.data.max">
 				</div>
-				<div class="col-3">
+				<div class="col-auto">
 					<button class="btn btn-primary" @click="$store.data.start()">開始</button>
 				</div>
 			</form>
