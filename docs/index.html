@@ -10,8 +10,9 @@
 	<style>
 		html,
 		body {
-			height: 100%;
+			height: 100dvh;
 			background: white;
+			overflow: hidden;
 		}
 
 		* {
@@ -68,8 +69,8 @@
 
 		.array {
 			flex-wrap: wrap;
-			width: 100%;
-			height: 100%;
+			width: 100vw;
+			height: 100dvh;
 			overflow: hidden;
 		}
 
@@ -96,27 +97,28 @@
 			}
 		}
 
-		function resize(skipRetry) {
+		function resize() {
 			if(typeof Alpine == "undefined") return;
 			const data = Alpine.store("data");
 			if(!data.play) return;
 			const root = document.querySelector(":root");
 			const el = document.querySelector(".array");
-			const rect = el.getBoundingClientRect();
+			const body = document.querySelector("body");
+			const rect = body.getBoundingClientRect();
+			const height = Math.min(screen.height, rect.height);
 			const n = data.max;
 
 			// Solve for size;
-			const size = binarySearch(0, Math.min(rect.width, rect.height),
-				s => s * Math.ceil(n / Math.floor(rect.width / s)) <= rect.height
+			const size = binarySearch(0, Math.min(rect.width, height),
+				s => s * Math.ceil(n / Math.floor(rect.width / s)) <= height
 			);
 			root.style.setProperty("--size", size + "px");
 
 			// Tighten the arrangement
-			const rows = Math.floor(rect.height / size);
+			const rows = Math.floor(height / size);
 			const columns = Math.ceil(n / rows);
 			el.style.paddingInline = (rect.width - columns * size) / 2 + "px";
-
-			if(!skipRetry) setTimeout(() => resize(true), 200);
+			el.style.maxHeight = height + "px";
 		}
 
 		function createShuffledArray(n, factory) {
@@ -128,7 +130,6 @@
 			return arr;
 		}
 
-		addEventListener("fullscreenchange", resize);
 		addEventListener("resize", resize);
 		addEventListener("popstate", e => {
 			const data = Alpine.store("data");
