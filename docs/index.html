@@ -165,7 +165,7 @@
 				this.time = new Date().getTime();
 				this.pushState();
 				document.body.requestFullscreen();
-				resize();
+				setTimeout(resize, 500);
 			},
 		}));
 	</script>
