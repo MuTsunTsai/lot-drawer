@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<title>抽籤器</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+		  integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+	<style>
+		html,
+		body {
+			height: 100%;
+			background: white;
+		}
+
+		* {
+			user-select: none;
+		}
+
+		.scene {
+			width: 200px;
+			height: 260px;
+			border: 1px solid #CCC;
+			margin: 40px 0;
+			perspective: 600px;
+		}
+
+		.flip {
+			width: 90%;
+			height: 90%;
+			transition: transform 1s;
+			transform-style: preserve-3d;
+
+			position: relative;
+		}
+
+		.flip.flipped {
+			transform: rotateY(180deg);
+		}
+
+		.flip-face {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+			font-family: Arial, Helvetica, sans-serif;
+			font-weight: bold;
+			font-size: calc(var(--size) * 0.5);
+			-webkit-backface-visibility: hidden;
+			backface-visibility: hidden;
+			border: 5px solid black;
+		}
+
+		.flip-face.back {
+			color: #999;
+			background: hsl(50 75% 50%);
+			transform: rotateY(180deg);
+		}
+
+		.flip-face.front {
+			cursor: pointer;
+		}
+
+		.array {
+			flex-wrap: wrap;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+		}
+
+		.center {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.array>div {
+			height: var(--size);
+			flex: 0 0 var(--size);
+		}
+	</style>
+	<script src="https://unpkg.com/alpinejs@3.13.7/dist/cdn.min.js" defer></script>
+	<script>
+		function binarySearch(min, max, test) {
+			let cursor = (min + max) / 2;
+			while(true) {
+				if(test(cursor)) min = cursor;
+				else max = cursor;
+				if(Math.abs(max - min) < 0.1) return min;
+				cursor = (min + max) / 2;
+			}
+		}
+
+		function resize() {
+			if(typeof Alpine == "undefined") return;
+			const data = Alpine.store("data");
+			const root = document.querySelector(":root");
+			const el = document.querySelector(".array");
+			const rect = el.getBoundingClientRect();
+			const n = data.max;
+
+			// Solve for size;
+			const size = binarySearch(0, Math.min(rect.width, rect.height),
+				s => s * Math.ceil(n / Math.floor(rect.width / s)) <= rect.height
+			);
+			root.style.setProperty("--size", size + "px");
+
+			// Tighten the arrangement
+			const rows = Math.floor(rect.height / size);
+			const columns = Math.ceil(n / rows);
+			el.style.paddingInline = (rect.width - columns * size) / 2 + "px";
+		}
+
+		function createShuffledArray(n, factory) {
+			const arr = Array.from({ length: n + 1 }, (_, i) => factory(i));
+			for(let i = n; i > 1; i--) {
+				const j = Math.floor(Math.random() * i) + 1;
+				if(i != j) [arr[i], arr[j]] = [arr[j], arr[i]];
+			}
+			return arr;
+		}
+
+		addEventListener("resize", resize);
+		addEventListener("popstate", e => {
+			const data = Alpine.store("data");
+			if(data.play && e.state?.time == data.time) {
+				data.restoring = true;
+				data.flipped = e.state?.flipped ?? [];
+			}
+		});
+		document.addEventListener("alpine:init", () => Alpine.store("data", {
+			play: false,
+			restoring: false,
+			time: 0,
+			max: 10,
+			columns: 1,
+			text: [],
+			color: [],
+			flipped: [],
+			pushState() {
+				history.pushState({ time: this.time, flipped: this.flipped.concat() }, "");
+			},
+			click(i) {
+				this.restoring = false;
+				if(!this.flipped[i]) this.flipped[i] = 1;
+				this.pushState();
+			},
+			blur(i) {
+				if(!this.restoring) this.flipped[i] = 2;
+			},
+			start() {
+				const n = this.max;
+				this.play = true;
+				const t = createShuffledArray(n, i => i);
+				this.color = createShuffledArray(n, i => `hsl(${i / n * 360}deg 75% 75%)`);
+				this.text = t;
+				this.flipped = [];
+				this.time = new Date().getTime();
+				this.pushState();
+				document.body.requestFullscreen();
+				resize();
+			},
+		}));
+	</script>
+
+</head>
+
+<body>
+	<div class="array center" x-data>
+		<template x-if="$store.data.play">
+			<template x-for="i in $store.data.max">
+				<div class="center">
+					<div class="flip" :class="{'flipped': $store.data.flipped[i]}">
+						<div class="flip-face back center" :class="{'text-black': $store.data.flipped[i]==1 }"
+							 x-text="$store.data.text[i]"></div>
+						<div class="flip-face front" @click="$store.data.click(i)" :tabIndex="i"
+							 :style="`background: ${$store.data.color[i]}`" @blur="$store.data.blur(i)"></div>
+					</div>
+				</div>
+			</template>
+		</template>
+		<template x-if="!$store.data.play">
+			<form class="row">
+				<label class="col-3 col-form-label text-end">組數：</label>
+				<div class="col">
+					<input class="form-control" type="number" x-model.number="$store.data.max">
+				</div>
+				<div class="col-3">
+					<button class="btn btn-primary" @click="$store.data.start()">開始</button>
+				</div>
+			</form>
+		</template>
+	</div>
+
+</body>
+
+</html>
