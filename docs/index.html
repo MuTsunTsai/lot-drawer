@@ -131,32 +131,33 @@
 		}
 
 		addEventListener("resize", resize);
-		addEventListener("popstate", e => {
-			const data = Alpine.store("data");
-			if(data.play && e.state?.time == data.time) {
-				data.restoring = true;
-				data.flipped = e.state?.flipped ?? [];
-			}
-		});
 		document.addEventListener("alpine:init", () => Alpine.store("data", {
 			play: false,
-			restoring: false,
 			time: 0,
 			max: 10,
 			columns: 1,
 			text: [],
 			color: [],
 			flipped: [],
-			pushState() {
-				history.pushState({ time: this.time, flipped: this.flipped.concat() }, "");
-			},
+			pendingCancel: 0,
+			pendingCount: 0,
+			cancelTimeout: 0,
 			click(i) {
-				this.restoring = false;
-				if(!this.flipped[i]) this.flipped[i] = 1;
-				this.pushState();
+				this.flipped[i] = 1;
 			},
-			blur(i) {
-				if(!this.restoring) this.flipped[i] = 2;
+			cancel(i) {
+				if(this.pendingCancel == i) {
+					clearTimeout(this.cancelTimeout);
+					this.cancelTimeout = setTimeout(() => this.pendingCount = 0, 200);
+					this.pendingCount++;
+					if(this.pendingCount >= 4) {
+						this.pendingCount = 0;
+						this.flipped[i] = 0;
+					}
+				} else {
+					this.pendingCancel = i;
+					this.pendingCount = 0;
+				}
 			},
 			start() {
 				const n = this.max;
@@ -166,7 +167,6 @@
 				this.text = t;
 				this.flipped = [];
 				this.time = new Date().getTime();
-				this.pushState();
 				document.body.requestFullscreen();
 			},
 		}));
@@ -181,9 +181,9 @@
 				<div class="center">
 					<div class="flip" :class="{'flipped': $store.data.flipped[i]}">
 						<div class="flip-face back center" :class="{'text-black': $store.data.flipped[i]==1 }"
-							 x-text="$store.data.text[i]"></div>
+							 x-text="$store.data.text[i]" @click="$store.data.cancel(i)"></div>
 						<div class="flip-face front" @click="$store.data.click(i)" :tabIndex="i"
-							 :style="`background: ${$store.data.color[i]}`" @blur="$store.data.blur(i)"></div>
+							 :style="`background: ${$store.data.color[i]}`" @blur="$store.data.flipped[i]=2"></div>
 					</div>
 				</div>
 			</template>
