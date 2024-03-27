@@ -150,7 +150,7 @@
 					clearTimeout(this.cancelTimeout);
 					this.cancelTimeout = setTimeout(() => this.pendingCount = 0, 200);
 					this.pendingCount++;
-					if(this.pendingCount >= 4) {
+					if(this.pendingCount >= 3) {
 						this.pendingCount = 0;
 						this.flipped[i] = 0;
 					}
