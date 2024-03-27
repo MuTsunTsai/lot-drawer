@@ -99,6 +99,7 @@
 		function resize() {
 			if(typeof Alpine == "undefined") return;
 			const data = Alpine.store("data");
+			if(!data.play) return;
 			const root = document.querySelector(":root");
 			const el = document.querySelector(".array");
 			const rect = el.getBoundingClientRect();
