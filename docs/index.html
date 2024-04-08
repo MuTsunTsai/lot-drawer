@@ -23,27 +23,27 @@
 </head>
 
 <body>
-	<div class="array center" x-data>
-		<template x-if="$store.data.play">
-			<template x-for="i in $store.data.max">
+	<div class="array center" x-data="app">
+		<template x-if="play">
+			<template x-for="i in max">
 				<div class="center">
-					<div class="flip" :class="{'flipped': $store.data.flipped[i]}">
-						<div class="flip-face back center" :class="{'text-black': $store.data.flipped[i]==1 }"
-							 x-text="$store.data.text[i]" @click="$store.data.cancel(i)"></div>
-						<div class="flip-face front" @click="$store.data.click(i)" :tabIndex="i"
-							 :style="`background: ${$store.data.color[i]}`" @blur="$store.data.flipped[i]=2"></div>
+					<div class="flip" :class="{'flipped': flipped[i]}">
+						<div class="flip-face back center" :class="{'text-black': flipped[i]==1 }"
+							 x-text="text[i]" @click="cancel(i)"></div>
+						<div class="flip-face front" @click="click(i)" :tabIndex="i"
+							 :style="`background: ${color[i]}`" @blur="flipped[i]=2"></div>
 					</div>
 				</div>
 			</template>
 		</template>
-		<template x-if="!$store.data.play">
+		<template x-if="!play">
 			<form class="row gx-2 px-3">
 				<label class="col-auto col-form-label text-end">組數：</label>
 				<div class="col">
-					<input class="form-control" type="number" x-model.number="$store.data.max">
+					<input class="form-control" type="number" x-model.number="max">
 				</div>
 				<div class="col-auto">
-					<button class="btn btn-primary" @click="$store.data.start()">開始</button>
+					<button class="btn btn-primary" @click="start()">開始</button>
 				</div>
 			</form>
 		</template>
