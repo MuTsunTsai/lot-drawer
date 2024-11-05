@@ -1,5 +1,6 @@
 html,
 body {
+	height: 100%;  /* fallback; see https://caniuse.com/mdn-css_types_length_viewport_percentage_units_dynamic */
 	height: 100dvh;
 	background: white;
 	overflow: hidden;
@@ -60,7 +61,7 @@ body {
 .array {
 	flex-wrap: wrap;
 	width: 100vw;
-	height: 100vh; /* fallback */
+	height: 100%;
 	height: 100dvh;
 	overflow: hidden;
 }

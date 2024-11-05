@@ -55,7 +55,9 @@ document.addEventListener("alpine:init", () => {
 			this.flipped = [];
 			this.time = new Date().getTime();
 			try {
-				document.body.requestFullscreen();
+				const el = document.body;
+				// https://caniuse.com/mdn-api_element_requestfullscreen
+				(el.requestFullscreen || el.webkitRequestFullscreen).apply(el);
 			} catch(e) {
 				this.resize();
 			}
