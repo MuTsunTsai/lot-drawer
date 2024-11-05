@@ -54,7 +54,11 @@ document.addEventListener("alpine:init", () => {
 			this.text = t;
 			this.flipped = [];
 			this.time = new Date().getTime();
-			document.body.requestFullscreen();
+			try {
+				document.body.requestFullscreen();
+			} catch(e) {
+				this.resize();
+			}
 		},
 		resize() {
 			if(!this.play) return;
